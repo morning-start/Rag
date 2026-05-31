@@ -1,3 +1,8 @@
+---
+title: "第13章 RAG 与 Agent 生态融合"
+editUrl: true
+---
+
 # 第13章 RAG 与 Agent 生态融合
 
 第12章我们探讨了 Agentic RAG 的技术实现——让 RAG 具备自主决策能力。本章将视角拉高一层：**RAG 正在从"独立系统"演变为 Agent 生态的基础设施层**。

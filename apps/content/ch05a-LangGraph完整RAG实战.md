@@ -1,3 +1,8 @@
+---
+title: "第5A章 LangGraph 完整 RAG 实战"
+editUrl: true
+---
+
 # 第5A章 LangGraph 完整 RAG 实战
 
 本章的重点——使用 **LangGraph StateGraph** 构建完整的 RAG 管线。LangGraph 相比传统 LangChain LCEL Chain 的核心优势在于：图结构支持循环、状态内置共享、条件路由原生支持（来源: [04-LangGraph入门到实践全指南.md](reference/04-工具链与环境/04-LangGraph入门到实践全指南.md)）。
