@@ -386,5 +386,172 @@ class IndexRebuilder:
 | 索引重建脚本 | 定期演练，确保可在一小时内完成 | 混沌工程测试 |
 | 监控告警 | 备份失败、存储空间不足时立即告警 | PagerDuty / 飞书告警 |
 
+### 9A.2.3 RTO / RPO 规划
+
+灾难恢复的核心指标是 RTO（Recovery Time Objective，恢复时间目标）和 RPO（Recovery Point Objective，恢复点目标）。针对 RAG 系统的各组件，建议的 RTO/RPO 如下：（来源: [RAG错误处理与高可用模式](reference/09-生产部署与运维/06-RAG错误处理与高可用模式.md)）
+
+| 组件 | 建议 RTO | 建议 RPO | 恢复策略 |
+|------|---------|---------|---------|
+| 向量数据库 | ≤ 5 分钟 | ≤ 1 小时 | 主备部署 + WAL 日志 |
+| 关系数据库（元数据） | ≤ 2 分钟 | ≤ 5 分钟 | 主从复制 + WAL 归档 |
+| LLM 网关 | ≤ 1 分钟 | 无状态 | 多副本负载均衡 |
+| Embedding 服务 | ≤ 5 分钟 | 无状态 | 多副本 + 缓存预热 |
+| 原始文档存储 | ≤ 30 分钟 | ≤ 24 小时 | 跨区域复制 + 定期校验 |
+| 索引重建服务 | ≤ 1 小时 | 不适用 | 定期演练 + 断点续跑 |
+
+**关键原则**：
+- 核心在线服务（检索、生成）RTO 应 ≤ 5 分钟，确保对用户影响最小化
+- 索引数据建议每小时快照，RPO ≤ 1 小时，最多丢失 1 小时的增量数据
+- 定期进行混沌工程测试，验证 RTO/RPO 指标是否达标
+
+## 9A.3 断路器模式与优雅降级
+
+### 9A.3.1 断路器（Circuit Breaker）
+
+重试机制在瞬态故障时有效，但在服务真正宕机时，大量并发重试会引发"重试风暴"加剧故障。断路器模式通过检测错误率达到阈值时"断开电路"，快速失败而非继续重试：
+
+```python
+import asyncio
+import time
+import logging
+from enum import Enum
+
+logger = logging.getLogger(__name__)
+
+class CircuitState(Enum):
+    CLOSED = "closed"       # 正常状态，请求通过
+    OPEN = "open"           # 断开状态，快速失败
+    HALF_OPEN = "half_open" # 半开状态，尝试恢复
+
+class CircuitBreaker:
+    def __init__(
+        self,
+        failure_threshold: int = 5,
+        recovery_timeout: float = 30.0,
+        half_open_max_requests: int = 3
+    ):
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+        self.half_open_max_requests = half_open_max_requests
+        self.state = CircuitState.CLOSED
+        self.failure_count = 0
+        self.last_failure_time = None
+        self.half_open_requests = 0
+
+    async def call(self, func, *args, **kwargs):
+        if self.state == CircuitState.OPEN:
+            if time.time() - self.last_failure_time >= self.recovery_timeout:
+                self.state = CircuitState.HALF_OPEN
+                self.half_open_requests = 0
+                logger.info("断路器进入半开状态，尝试恢复")
+            else:
+                raise CircuitBreakerOpenError("断路器已断开，请求被拒绝")
+
+        try:
+            result = await func(*args, **kwargs)
+            self._on_success()
+            return result
+        except Exception as e:
+            self._on_failure()
+            raise
+
+    def _on_success(self):
+        if self.state == CircuitState.HALF_OPEN:
+            self.half_open_requests += 1
+            if self.half_open_requests >= self.half_open_max_requests:
+                self.state = CircuitState.CLOSED
+                self.failure_count = 0
+                logger.info("断路器恢复为关闭状态")
+        else:
+            self.failure_count = 0
+
+    def _on_failure(self):
+        self.failure_count += 1
+        self.last_failure_time = time.time()
+        if self.failure_count >= self.failure_threshold:
+            self.state = CircuitState.OPEN
+            logger.warning(f"失败次数达到阈值 {self.failure_threshold}，断路器断开")
+
+class CircuitBreakerOpenError(Exception):
+    pass
+```
+
+### 9A.3.2 模型回退链（Model Fallback Chain）
+
+当主模型不可用或响应质量下降时，按优先级链回退到备用模型：
+
+```python
+MODEL_FALLBACK_CHAIN = [
+    {"model": "qwen2.5:72b", "provider": "local", "priority": 1},
+    {"model": "gpt-4o", "provider": "openai", "priority": 2},
+    {"model": "claude-sonnet-4", "provider": "anthropic", "priority": 3},
+    {"model": "gemini-2.0-flash", "provider": "google", "priority": 4},
+]
+
+async def call_with_fallback(prompt: str, max_retries: int = 2) -> str:
+    for tier in MODEL_FALLBACK_CHAIN:
+        for attempt in range(max_retries):
+            try:
+                return await call_llm(prompt, model=tier["model"])
+            except (ConnectionError, TimeoutError, RateLimitError) as e:
+                logger.warning(f"模型 {tier['model']} 失败: {e}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)
+                continue
+        logger.info(f"回退到下一级模型: {tier['model']}")
+    raise AllModelsFailedError("所有模型均不可用")
+```
+
+### 9A.3.3 优雅降级策略
+
+当系统整体负载过高或部分组件不可用时，通过动态调整响应策略实现降级：
+
+| 降级级别 | 触发条件 | 行为 | 用户体验影响 |
+|---------|---------|------|-------------|
+| **L0 正常** | 全部组件正常 | 完整 RAG 管线：检索 + 重排 + 生成 | 最佳体验 |
+| **L1 精简** | 重排服务不可用 | 跳过重排，直接使用向量检索 Top-K 结果 | 回答质量可能下降 5-15% |
+| **L2 降级** | LLM 服务压力大 | 使用缓存命中替代 LLM 生成，或返回检索摘要 | 响应更快但精度下降 |
+| **L3 容灾** | 向量数据库不可用 | 使用备用 BM25 关键词检索，或返回静态 FAQ | 仅支持简单问答 |
+| **L4 熔断** | 核心组件全不可用 | 返回友好提示："系统维护中，请稍后再试" | 服务不可用但系统不崩溃 |
+
+```python
+class GracefulDegradation:
+    def __init__(self):
+        self.health_checks = {
+            "vector_db": False,
+            "reranker": False,
+            "llm": False,
+            "bm25": True,  # BM25 通常本地可用
+        }
+
+    def get_degradation_level(self) -> int:
+        if all(self.health_checks.values()):
+            return 0  # L0 正常
+        if not self.health_checks["reranker"]:
+            return 1  # L1 精简
+        if not self.health_checks["llm"]:
+            return 2  # L2 降级
+        if not self.health_checks["vector_db"]:
+            return 3  # L3 容灾
+        return 4  # L4 熔断
+
+    async def handle_query(self, query: str) -> str:
+        level = self.get_degradation_level()
+        if level == 0:
+            return await self.full_rag_pipeline(query)
+        elif level == 1:
+            return await self.skip_rerank_pipeline(query)
+        elif level == 2:
+            return await self.cache_or_summary_pipeline(query)
+        elif level == 3:
+            return await self.bm25_fallback_pipeline(query)
+        else:
+            return "系统正在维护升级，请稍后再试。如需紧急帮助，请联系 support@example.com"
+```
+
+**核心设计哲学**：降级不是"功能裁剪"，而是**可预期的行为切换**。每个降级级别都有明确的触发条件、行为定义和用户体验声明，让团队在故障发生时能快速判断当前系统的服务能力边界。
+
 ---
+
+
 
