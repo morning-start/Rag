@@ -17,5 +17,8 @@ pnpm-debug.log*
 .env
 .env.production
 
+# content junction (symbolic link to apps/content/)
+src/content/docs/chapters/
+
 # macOS-specific files
 .DS_Store
