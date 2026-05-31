@@ -3,7 +3,6 @@ import starlight from '@astrojs/starlight';
 
 export default defineConfig({
 	site: 'https://anomalyco.github.io',
-	base: '/rag-tutorial',
 	trailingSlash: 'always',
 
 	integrations: [
