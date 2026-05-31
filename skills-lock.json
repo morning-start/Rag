@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "tutorial-writer": {
+      "source": "morning-start/agent-skills",
+      "sourceType": "github",
+      "skillPath": "process/tutorial-writer-skill/SKILL.md",
+      "computedHash": "236f6299d601f821ae6f601de1c85c96746afc970c0294197caa381ead7b2079"
+    }
+  }
+}
