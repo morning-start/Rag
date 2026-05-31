@@ -1,0 +1,377 @@
+{
+  "metadata": {
+    "project_name": "《RAG 从入门到生产实践》",
+    "project_version": "v1.0.0",
+    "created_at": "2026-05-25T00:00:00+08:00",
+    "last_updated": "2026-05-25T18:30:00+08:00",
+    "total_decisions": 20,
+    "confirmed_decisions": 20,
+    "pending_decisions": 0
+  },
+  "decisions": {
+    "basic_lang_primary": {
+      "id": "basic_lang_primary",
+      "category": "基础配置",
+      "question": "教程的主要写作语言是什么？",
+      "type": "single_choice",
+      "options": [
+        { "value": "zh-CN", "label": "简体中文（主）" },
+        { "value": "en-US", "label": "英文（主）" },
+        { "value": "bilingual", "label": "中英双语" }
+      ],
+      "current_value": "zh-CN",
+      "status": "confirmed",
+      "priority": "critical",
+      "reasoning": "用户全程使用中文交流，AGENTS.md 明确规定'使用中文回复我'",
+      "confirmed_at": "2026-05-24T10:00:00+08:00",
+      "confirmed_by": "user",
+      "change_history": []
+    },
+    "basic_lang_term_handling": {
+      "id": "basic_lang_term_handling",
+      "category": "基础配置",
+      "question": "技术术语如何处理？",
+      "type": "single_choice",
+      "options": [
+        { "value": "first_en_then_zh", "label": "首次英文+中文括注" },
+        { "value": "first_zh_then_en", "label": "首次中文+英文括注" },
+        { "value": "zh_only", "label": "纯中文" }
+      ],
+      "current_value": "first_en_then_zh",
+      "status": "confirmed",
+      "priority": "high",
+      "reasoning": "全书统一使用'RAG（检索增强生成）'格式，首次出现时英文+中文括注",
+      "confirmed_at": "2026-05-24T10:00:00+08:00",
+      "confirmed_by": "agent_default",
+      "change_history": []
+    },
+    "tech_primary_language": {
+      "id": "tech_primary_language",
+      "category": "技术选型",
+      "question": "代码示例主要使用哪种编程语言？",
+      "type": "single_choice",
+      "options": [
+        { "value": "python", "label": "Python" },
+        { "value": "javascript", "label": "JavaScript/TypeScript" },
+        { "value": "multi", "label": "多语言（主+辅）" }
+      ],
+      "current_value": "python",
+      "status": "confirmed",
+      "priority": "critical",
+      "reasoning": "AI/ML 领域主流语言，RAG 生态最丰富（LangGraph/ChromaDB/sentence-transformers 均为 Python 原生）",
+      "confirmed_at": "2026-05-24T10:00:00+08:00",
+      "confirmed_by": "user_implicit",
+      "change_history": []
+    },
+    "tech_framework_preference": {
+      "id": "tech_framework_preference",
+      "category": "技术选型",
+      "question": "RAG 编排框架偏好？（关键决策）",
+      "type": "single_choice",
+      "options": [
+        { "value": "langchain_only", "label": "仅 LangChain / LCEL" },
+        { "value": "langgraph_only", "label": "仅 LangGraph StateGraph" },
+        { "value": "llamaindex_only", "label": "仅 LlamaIndex" },
+        { "value": "native_only", "label": "纯原生实现（无框架）" },
+        {
+          "value": "langgraph_preferred",
+          "label": "LangGraph 优先 + 原生底层组件"
+        }
+      ],
+      "current_value": "langgraph_preferred",
+      "status": "confirmed",
+      "priority": "critical",
+      "reasoning": "用户明确要求'全栈替换 LangChain'：编排层使用 LangGraph StateGraph，底层组件全部使用原生 SDK（PyMuPDF/ChromaDB原生/SentenceTransformer/Ollama REST API）。此决策影响全书 13 章所有代码。",
+      "confirmed_at": "2026-05-25T14:30:00+08:00",
+      "confirmed_by": "user_explicit",
+      "change_history": [
+        {
+          "from": "langchain_included",
+          "to": "langgraph_preferred",
+          "at": "2026-05-25T14:30:00+08:00",
+          "reason": "用户指令：'重新处理 book/ 目录，所有技术实现都是用 langgraph，不使用 langchain。注意技术的时效性'。后续确认'全栈替换'。"
+        }
+      ]
+    },
+    "tech_vector_db": {
+      "id": "tech_vector_db",
+      "category": "技术选型",
+      "question": "向量数据库选择？",
+      "type": "single_choice",
+      "options": [
+        { "value": "chromadb_native", "label": "ChromaDB 原生 SDK" },
+        { "value": "faiss", "label": "FAISS" },
+        { "value": "qdrant", "label": "Qdrant" },
+        { "value": "milvus", "label": "Milvus" },
+        { "value": "pinecone", "label": "Pinecone" }
+      ],
+      "current_value": "chromadb_native",
+      "status": "confirmed",
+      "priority": "high",
+      "reasoning": "ChromaDB 原生 Python SDK（PersistentClient + collection.add/query），零 LangChain wrapper 依赖。适合教程场景的本地开发与快速原型。生产环境可按需迁移至 Qdrant/Milvus。",
+      "confirmed_at": "2026-05-25T14:30:00+08:00",
+      "confirmed_by": "user_explicit",
+      "change_history": []
+    },
+    "tech_llm_provider": {
+      "id": "tech_llm_provider",
+      "category": "技术选型",
+      "question": "LLM 推理服务提供商？",
+      "type": "multi_select",
+      "options": [
+        { "value": "ollama_local", "label": "Ollama 本地模型" },
+        { "value": "openai_api", "label": "OpenAI API" },
+        { "value": "azure_openai", "label": "Azure OpenAI" },
+        { "value": "anthropic", "label": "Anthropic Claude" },
+        { "value": "qwen_api", "label": "通义千问 API" }
+      ],
+      "current_value": ["ollama_local"],
+      "status": "confirmed",
+      "priority": "high",
+      "reasoning": "以 Ollama 本地部署为主（llama3.3:8b + nomic-embed-text），通过 OpenAI 兼容 REST API 调用（http://localhost:11434/v1/chat/completions）。代码中使用 httpx/requests 库直接调用，不依赖任何 LLM SDK wrapper。",
+      "confirmed_at": "2026-05-25T14:30:00+08:00",
+      "confirmed_by": "user_explicit",
+      "change_history": []
+    },
+    "content_target_audience": {
+      "id": "content_target_audience",
+      "category": "内容策略",
+      "question": "目标读者是谁？",
+      "type": "single_choice",
+      "options": [
+        { "value": "beginner", "label": "零基础入门者" },
+        { "value": "developer", "label": "有编程经验的开发者" },
+        { "value": "architect", "label": "架构师/技术负责人" },
+        { "value": "mixed_dev_arch", "label": "开发者+架构师混合" }
+      ],
+      "current_value": "mixed_dev_arch",
+      "status": "confirmed",
+      "priority": "critical-medium",
+      "reasoning": "覆盖从基础搭建到生产架构的全链路，既面向需要动手实现的开发者，也面向需要做技术选型的架构师。",
+      "confirmed_at": "2026-05-24T10:00:00+08:00",
+      "confirmed_by": "agent_derived",
+      "change_history": []
+    },
+    "content_depth_level": {
+      "id": "content_depth_level",
+      "category": "内容策略",
+      "question": "内容深度级别？",
+      "type": "single_choice",
+      "options": [
+        { "value": "overview_only", "label": "概览级（概念为主）" },
+        { "value": "standard", "label": "标准级（原理+代码）" },
+        { "value": "detailed", "label": "详细级（完整可运行代码）" },
+        { "value": "production_ready", "label": "生产就绪级（含部署运维）" }
+      ],
+      "current_value": "detailed",
+      "status": "confirmed",
+      "priority": "critical-medium",
+      "reasoning": "基础篇(Ch3-Ch5)采用详细级（350-500行，含完整可运行代码）；进阶/生产篇标准级；前沿篇精简级。实际执行中 Ch4 达到 866 行、Ch5 达到 953 行，均含大量可运行代码块。",
+      "confirmed_at": "2026-05-25T12:00:00+08:00",
+      "confirmed_by": "user_implicit",
+      "change_history": []
+    },
+    "content_example_style": {
+      "id": "content_example_style",
+      "category": "内容策略",
+      "question": "代码示例风格？",
+      "type": "single_choice",
+      "options": [
+        { "value": "snippet_only", "label": "仅核心片段" },
+        {
+          "value": "complete_runnable",
+          "label": "完整可运行（含 import/错误处理）"
+        },
+        { "value": "production_grade", "label": "生产级（含日志/监控/重试）" }
+      ],
+      "current_value": "complete_runnable",
+      "status": "confirmed",
+      "priority": "medium",
+      "reasoning": "所有代码块必须包含完整的 import 语句、可直接运行、有错误处理说明。全书共约 90 个代码块。",
+      "confirmed_at": "2026-05-25T12:00:00+08:00",
+      "confirmed_by": "quality_gate_enforced",
+      "change_history": []
+    },
+    "content_figure_style": {
+      "id": "content_figure_style",
+      "category": "内容策略",
+      "question": "图表呈现方式？",
+      "type": "single_choice",
+      "options": [
+        { "value": "ascii_art", "label": "ASCII 文字图" },
+        { "value": "mermaid", "label": "Mermaid 图表" },
+        { "value": "table_only", "label": "纯表格对比" },
+        { "value": "external_image", "label": "外部图片引用" }
+      ],
+      "current_value": ["ascii_art", "table_only"],
+      "status": "confirmed",
+      "priority": "low",
+      "reasoning": "架构图使用 ASCII art 文字图（如 Ch2 Agentic RAG 架构图、Ch9 K8s 部署图），数据对比使用 Markdown 表格。不引入 Mermaid 或图片依赖。",
+      "confirmed_at": "2026-05-25T12:00:00+08:00",
+      "confirmed_by": "agent_default",
+      "change_history": []
+    },
+    "style_writing_tone": {
+      "id": "style_writing_tone",
+      "category": "风格偏好",
+      "question": "写作语气风格？",
+      "type": "single_choice",
+      "options": [
+        { "value": "casual_friendly", "label": "轻松友好" },
+        { "value": "professional_educational", "label": "专业教育性" },
+        { "value": "academic_formal", "label": "学术正式" },
+        { "value": "practical_direct", "label": "实战直白" }
+      ],
+      "current_value": "professional_educational",
+      "status": "confirmed",
+      "priority": "medium-high",
+      "reasoning": "专业但不晦涩，教育性但不说教。每节先讲原理再给实践（S1 惯例），复杂概念用比喻降低门槛（S2 惯例，如'开卷考试'比喻 RAG）。",
+      "confirmed_at": "2026-05-24T10:00:00+08:00",
+      "confirmed_by": "agent_derived",
+      "change_history": []
+    },
+    "style_metaphor_usage": {
+      "id": "style_metaphor_usage",
+      "category": "风格偏好",
+      "question": "比喻使用频率？",
+      "type": "single_choice",
+      "options": [
+        { "value": "heavy", "label": "频繁使用比喻" },
+        { "value": "moderate", "label": "适度（核心概念处使用）" },
+        { "value": "minimal", "label": "极少" },
+        { "value": "none", "label": "完全不使用" }
+      ],
+      "current_value": "moderate",
+      "status": "confirmed",
+      "priority": "medium",
+      "reasoning": "在核心概念首次引入时使用比喻（如 RAG=开卷考试、检索器=图书管理员、生成器=学霸），后续章节不再重复。",
+      "confirmed_at": "2026-05-24T10:00:00+08:00",
+      "confirmed_by": "agent_derived",
+      "change_history": []
+    },
+    "style_data_citation": {
+      "id": "style_data_citation",
+      "category": "风格偏好",
+      "question": "数据引用方式？",
+      "type": "single_choice",
+      "options": [
+        { "value": "none", "label": "无引用" },
+        { "value": "informal", "label": "非正式（\"据...\"）" },
+        { "value": "structured", "label": "结构化标注（来源:[文件](路径)）" },
+        { "value": "footnote_academic", "label": "学术脚注格式" }
+      ],
+      "current_value": "structured",
+      "status": "confirmed",
+      "priority": "high",
+      "reasoning": "强制规则 R3：所有关键数据必须标注来源，格式为（来源: [文件名](reference/路径)）。全书共 60+ 处引用标注。",
+      "confirmed_at": "2026-05-24T10:00:00+08:00",
+      "confirmed_by": "skill_enforced",
+      "change_history": []
+    },
+    "pm_delivery_format": {
+      "id": "pm_delivery_format",
+      "category": "项目管理",
+      "question": "交付物格式？",
+      "type": "single_choice",
+      "options": [
+        { "value": "markdown_only", "label": "纯 Markdown (.md)" },
+        { "value": "markdown_with_assets", "label": "Markdown + 图片/附件" },
+        { "value": "pdf_final", "label": "最终输出 PDF" },
+        { "value": "website_hugo", "label": "Hugo/静态网站" }
+      ],
+      "current_value": "markdown_only",
+      "status": "confirmed",
+      "priority": "medium-low",
+      "reasoning": "book/ 目录下每个章节一个 .md 文件，reference/ 目录存放参考资料。无图片或 PDF 输出需求。",
+      "confirmed_at": "2026-05-24T10:00:00+08:00",
+      "confirmed_by": "user_default",
+      "change_history": []
+    },
+    "pm_writing_order": {
+      "id": "pm_writing_order",
+      "category": "项目管理",
+      "question": "章节编写顺序？",
+      "type": "single_choice",
+      "options": [
+        { "value": "sequential_ch1_to_ch13", "label": "严格按 Ch1→Ch13 顺序" },
+        {
+          "value": "phase_grouped",
+          "label": "分阶段（认知→基础→进阶→生产→前沿）"
+        },
+        { "value": "priority_first", "label": "优先级驱动" },
+        { "value": "user_on_demand", "label": "按用户要求动态调整" }
+      ],
+      "current_value": "phase_grouped",
+      "status": "confirmed",
+      "priority": "low",
+      "reasoning": "实际执行采用分阶段模式：先完成认知篇(Ch1-Ch2)→基础篇(Ch3-Ch5)→进阶+生产篇(Ch6-Ch9)→补全剩余(Ch10-Ch13)。每阶段内并行 Agent 处理提高效率。",
+      "confirmed_at": "2026-05-25T18:30:00+08:00",
+      "confirmed_by": "actual_execution",
+      "change_history": []
+    },
+    "pm_quality_standard": {
+      "id": "pm_quality_standard",
+      "category": "项目管理",
+      "question": "质量门禁标准？",
+      "type": "single_choice",
+      "options": [
+        { "value": "loose", "label": "宽松（完成即可）" },
+        { "value": "standard", "label": "标准（tutorial-writer 9项）" },
+        { "value": "strict_v2", "label": "严格 v2.0（12项含决策合规）" },
+        { "value": "custom_enterprise", "label": "企业自定义" }
+      ],
+      "current_value": "strict_v2",
+      "status": "confirmed",
+      "priority": "medium-low",
+      "reasoning": "使用 tutorial-writer v2.0 的 12 项质量门禁（Q1-Q9 传统 + Q10-Q12 决策合规）。每次交付前必须全量通过 Grep 扫描验证零 LangChain 残留。",
+      "confirmed_at": "2026-05-25T18:30:00+08:00",
+      "confirmed_by": "skill_enforced",
+      "change_history": [
+        {
+          "from": "standard",
+          "to": "strict_v2",
+          "at": "2026-05-25T12:00:00+08:00",
+          "reason": "升级至 tutorial-writer v2.0，新增 Q10-Q12 决策合规检查"
+        }
+      ]
+    },
+    "pm_git_strategy": {
+      "id": "pm_git_strategy",
+      "category": "项目管理",
+      "question": "Git 提交策略？",
+      "type": "single_choice",
+      "options": [
+        { "value": "per_chapter", "label": "每章一提交" },
+        { "value": "per_phase", "label": "每阶段一提交" },
+        { "value": "on_user_request", "label": "仅在用户要求时提交" },
+        { "value": "auto_commit", "label": "自动提交" }
+      ],
+      "current_value": "on_user_request",
+      "status": "confirmed",
+      "priority": "low",
+      "reasoning": "目前尚未执行 Git 提交操作。待用户主动请求时按 conventional commit 规范执行。",
+      "confirmed_at": "2026-05-25T18:30:00+08:00",
+      "confirmed_by": "user_not_yet_requested",
+      "change_history": []
+    },
+    "pm_feedback_mechanism": {
+      "id": "pm_feedback_mechanism",
+      "category": "项目管理",
+      "question": "反馈机制？",
+      "type": "single_choice",
+      "options": [
+        { "value": "none", "label": "无反馈环节" },
+        { "value": "end_of_chapter", "label": "每章完成后确认" },
+        { "value": "end_of_phase", "label": "每阶段完成后确认" },
+        { "value": "continuous_interactive", "label": "持续交互式" }
+      ],
+      "current_value": "continuous_interactive",
+      "status": "confirmed",
+      "priority": "low",
+      "reasoning": "全程采用持续交互式：PLAN→RESEARCH→WRITE→REVIEW→DELIVER 每阶段完成后向用户汇报并等待下一步指令。使用 AskUserQuestion 工具进行关键决策点确认（如迁移范围选择）。",
+      "confirmed_at": "2026-05-25T18:30:00+08:00",
+      "confirmed_by": "actual_execution",
+      "change_history": []
+    }
+  }
+}
