@@ -2,7 +2,8 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 export default defineConfig({
-	site: 'https://anomalyco.github.io',
+	site: 'https://morning-start.github.io',
+	base: '/Rag/',
 	trailingSlash: 'always',
 
 	integrations: [
@@ -15,10 +16,10 @@ export default defineConfig({
 				alt: 'RAG Tutorial',
 			},
 			social: [
-				{ icon: 'github', label: 'GitHub', href: 'https://github.com/anomalyco/rag-tutorial' },
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/morning-start/Rag' },
 			],
 			editLink: {
-				baseUrl: 'https://github.com/anomalyco/rag-tutorial/edit/main/apps/content/',
+				baseUrl: 'https://github.com/morning-start/Rag/edit/main/apps/content/',
 			},
 			lastUpdated: true,
 			pagination: true,

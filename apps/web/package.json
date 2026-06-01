@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "build:deploy": "astro build --base=/rag-tutorial/",
+    "build:deploy": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
