@@ -1,10 +1,17 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 export default defineConfig({
 	site: 'https://morning-start.github.io',
 	base: '/Rag/',
 	trailingSlash: 'always',
+
+	markdown: {
+		remarkPlugins: [remarkMath],
+		rehypePlugins: [rehypeKatex],
+	},
 
 	integrations: [
 		starlight({
@@ -23,6 +30,10 @@ export default defineConfig({
 			},
 			lastUpdated: true,
 			pagination: true,
+
+			customCss: [
+				'katex/dist/katex.min.css',
+			],
 
 			sidebar: [
 				{ label: '首页', slug: 'index' },
