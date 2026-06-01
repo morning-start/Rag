@@ -52,33 +52,47 @@
 
 ```bash
 # 安装依赖
-uv sync
+bun install
 
-# 本地预览网页版（需要 Python 3.10+）
-uv run mkdocs serve
+# 本地预览教程网站
+bun run dev
 
 # 构建静态站点
-uv run mkdocs build
+bun run build
 ```
+
+> 前提条件：Node.js >= 18，bun >= 1.3.14
 
 ## 项目结构
 
 ```
 RAG/
-├── book/            # 规范内容源（Markdown）
-├── web/             # 网页构建源（MkDocs）
-├── site/            # 构建输出（忽略）
-├── reference/       # 参考资料（每章配套）
-├── mkdocs.yml       # 站点配置
-├── pyproject.toml   # Python 依赖
-└── 大纲.md          # 全书大纲
+├── apps/
+│   ├── web/            # 🌐 教程网站（Astro + Starlight）
+│   ├── content/        # 📝 章节内容源（Markdown）
+│   └── reference/      # 📚 参考资料（每章配套）
+├── 大纲.md             # 全书大纲
+├── AGENTS.md           # Agent 工作流配置
+├── package.json        # 工作区根配置
+├── turbo.json          # Turborepo 流水线配置
+└── bun.lock            # 依赖锁定
 ```
 
-## 交互功能
+## 网页预览
 
-- **RAG 演进时间轴**（Ch2）— 拖动/点击浏览五代范式，对比关键指标
-- **向量空间 3D 可视化**（Ch5）— Three.js 交互展示 Embedding 检索过程
-- **评估框架对比图表**（Ch8）— 多维度切换查看框架性能对比
+教程内容通过 Astro + Starlight 构建为静态网站，支持搜索、导航和移动端适配：
+
+```bash
+cd apps/web
+bun run dev     # 开发模式（热更新）
+bun run build   # 生产构建
+bun run preview # 预览构建结果
+```
+
+> **注意**：构建前需创建 `apps/web/src/content/docs/chapters` 目录链接到 `apps/content`：
+> ```powershell
+> New-Item -ItemType Junction -Path "apps/web/src/content/docs/chapters" -Target "apps/content"
+> ```
 
 ## 许可
 
