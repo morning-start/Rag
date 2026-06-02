@@ -22,8 +22,11 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Create content symlink
-        run: ln -s ../../../../content apps/web/src/content/docs/chapters
+      - name: Convert content for web (convert + fruit)
+        run: bun run convert:all
+
+      - name: Create content symlink from fruit output
+        run: ln -s ../../../fruit apps/web/src/content/docs/chapters
 
       - name: Build
         run: bun run build
@@ -45,8 +48,11 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Create content symlink
-        run: ln -s ../../../../content apps/web/src/content/docs/chapters
+      - name: Convert content for web (convert + fruit)
+        run: bun run convert:all
+
+      - name: Create content symlink from fruit output
+        run: ln -s ../../../fruit apps/web/src/content/docs/chapters
 
       - name: Build for deployment
         working-directory: apps/web
