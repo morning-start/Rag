@@ -37,3 +37,6 @@ yarn-error.log*
 .DS_Store
 *.pem
 .agents
+
+apps\web\src\fruit
+apps\web\src\convert
